@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 # ---- Configuration ----
 DATASET_NAME = "FLG/TwiceAsNice MeshCore Site Map"
+NETWORKLINK_NAME = f"{DATASET_NAME} (Live)"
 
 CSV_URL = os.environ.get("SHEET_CSV_URL", "").strip()
 OUTPUT_KML = "sites.kml"
@@ -19,8 +20,19 @@ DATASET_URL = os.environ.get("DATASET_URL", "").strip()
 # 10 minutes = 600 seconds
 REFRESH_SECONDS = int(os.environ.get("REFRESH_SECONDS", "600"))
 
+# Stable folder ordering (and preferred category vocabulary)
+CATEGORY_ORDER = [
+    "Suggested",
+    "Group Approved",
+    "Group Rejected",
+    "Owner Requested",
+    "Owner Approved",
+    "Owner Rejected",
+    "Node Installed",
+]
+
 # Category -> KML colors in AABBGGRR (alpha, blue, green, red)
-# NOTE: Using your exact values as provided (including comment labels).
+# Using your exact values as provided.
 CATEGORY_COLORS = {
     "Owner Approved": "ff00ff00",     # Pure Green
     "Group Approved": "fffeb900",     # Mid Blue
@@ -32,10 +44,9 @@ CATEGORY_COLORS = {
 }
 
 # Category icon URLs (Google Earth / KML built-in icons)
-# Any category not listed here will use DEFAULT_ICON_URL.
 DEFAULT_ICON_URL = "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png"
 
-# Category Shapes
+# Category Shapes (using your exact mapping)
 CATEGORY_ICONS = {
     "Node Installed": "http://maps.google.com/mapfiles/kml/paddle/grn-stars.png",
     "Owner Approved": "http://maps.google.com/mapfiles/kml/paddle/grn-blank.png",
@@ -72,6 +83,9 @@ def safe_float(x):
         return None
 
 def build_styles() -> str:
+    """
+    Build one <Style> per category in CATEGORY_COLORS.
+    """
     out = []
     for cat, color in CATEGORY_COLORS.items():
         icon_url = CATEGORY_ICONS.get(cat, DEFAULT_ICON_URL)
@@ -79,16 +93,25 @@ def build_styles() -> str:
     <Style id="{html.escape(cat)}">
       <IconStyle>
         <color>{color}</color>
-        <scale>1.5</scale>
+        <scale>1.1</scale>
         <Icon>
           <href>{html.escape(icon_url)}</href>
         </Icon>
       </IconStyle>
       <LabelStyle>
-        <scale>1.0</scale>
+        <scale>0.9</scale>
       </LabelStyle>
     </Style>""")
     return "\n".join(out)
+
+def category_sort_key(cat: str):
+    """
+    Stable ordering: categories in CATEGORY_ORDER first, then anything else alphabetically.
+    """
+    try:
+        return (0, CATEGORY_ORDER.index(cat))
+    except ValueError:
+        return (1, cat.lower())
 
 def main() -> None:
     if not CSV_URL:
@@ -104,7 +127,8 @@ def main() -> None:
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
 
-    placemarks = []
+    # category -> list[placemark_xml]
+    folders = {}
     skipped = 0
 
     for i, row in enumerate(reader, start=2):
@@ -138,7 +162,7 @@ def main() -> None:
         # Style by category (unknown categories still render, just without styling)
         style_url = f"#{category}" if category in CATEGORY_COLORS else ""
 
-        # Build description with only populated fields
+        # Description with only populated fields
         desc_parts = [
             f"<b>Name:</b> {html.escape(name)}",
             f"<b>Status:</b> {html.escape(category)}",
@@ -158,9 +182,7 @@ def main() -> None:
             desc_parts.append(f"<b>FCC ID:</b> {html.escape(fcc_id)}")
         if fcc_link:
             safe_url = html.escape(fcc_link, quote=True)
-            desc_parts.append(
-                f'<b>FCC Link:</b> <a href="{safe_url}" target="_blank">{safe_url}</a>'
-            )
+            desc_parts.append(f'<b>FCC Link:</b> <a href="{safe_url}" target="_blank">{safe_url}</a>')
         if notes:
             desc_parts.append(f"<b>Notes:</b> {html.escape(notes)}")
 
@@ -171,27 +193,48 @@ def main() -> None:
 
         desc = "<br/>".join(desc_parts)
 
-        placemarks.append(f"""
-    <Placemark>
-      <name>{html.escape(name)}</name>
-      {"<styleUrl>"+html.escape(style_url)+"</styleUrl>" if style_url else ""}
-      <description><![CDATA[{desc}]]></description>
-      <Point>
-        <coordinates>{lon},{lat}</coordinates>
-      </Point>
-    </Placemark>""")
+        placemark_xml = f"""
+      <Placemark>
+        <name>{html.escape(name)}</name>
+        {"<styleUrl>"+html.escape(style_url)+"</styleUrl>" if style_url else ""}
+        <description><![CDATA[{desc}]]></description>
+        <Point>
+          <coordinates>{lon},{lat}</coordinates>
+        </Point>
+      </Placemark>"""
+
+        folders.setdefault(category, []).append(placemark_xml)
+
+    # Build folder XML in stable order.
+    # - All categories visible by default (visibility=1)
+    # - Folders collapsed by default (open=0)
+    ordered_categories = sorted(folders.keys(), key=category_sort_key)
+
+    folders_xml_parts = []
+    for cat in ordered_categories:
+        pms = folders.get(cat, [])
+        folders_xml_parts.append(f"""
+    <Folder>
+      <name>{html.escape(cat)}</name>
+      <visibility>1</visibility>
+      <open>0</open>
+      {''.join(pms)}
+    </Folder>""")
+
+    folders_xml = "\n".join(folders_xml_parts)
 
     kml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>{html.escape(DATASET_NAME)}</name>
+    <open>1</open>
     <description><![CDATA[
       Live dataset generated from Google Sheets.<br/>
       Updated (UTC): {now}<br/>
       Rows skipped (missing/invalid required fields): {skipped}
     ]]></description>
 {build_styles()}
-{''.join(placemarks)}
+{folders_xml}
   </Document>
 </kml>
 """
@@ -204,7 +247,7 @@ def main() -> None:
     networklink = f"""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <NetworkLink>
-    <name>{html.escape(DATASET_NAME)} (Live)</name>
+    <name>{html.escape(NETWORKLINK_NAME)}</name>
     <Link>
       <href>{html.escape(dataset_href)}</href>
       <refreshMode>onInterval</refreshMode>
