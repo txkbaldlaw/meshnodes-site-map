@@ -20,6 +20,7 @@ DATASET_URL = os.environ.get("DATASET_URL", "").strip()
 REFRESH_SECONDS = int(os.environ.get("REFRESH_SECONDS", "600"))
 
 # Category -> KML colors in AABBGGRR (alpha, blue, green, red)
+# NOTE: Using your exact values as provided (including comment labels).
 CATEGORY_COLORS = {
     "Owner Approved": "ff00ff00",     # Pure Green
     "Group Approved": "fffeb900",     # Mid Blue
@@ -30,7 +31,11 @@ CATEGORY_COLORS = {
     "Group Rejected": "ff0000ff",     # Black
 }
 
-#  Category Shapes 
+# Category icon URLs (Google Earth / KML built-in icons)
+# Any category not listed here will use DEFAULT_ICON_URL.
+DEFAULT_ICON_URL = "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png"
+
+# Category Shapes
 CATEGORY_ICONS = {
     "Node Installed": "http://maps.google.com/mapfiles/kml/paddle/grn-stars.png",
     "Owner Approved": "http://maps.google.com/mapfiles/kml/paddle/grn-blank.png",
@@ -38,7 +43,6 @@ CATEGORY_ICONS = {
     "Owner Rejected": "http://maps.google.com/mapfiles/kml/paddle/X.png",
     "Group Rejected": "http://maps.google.com/mapfiles/kml/paddle/X.png",
 }
-
 
 # Only these fields are REQUIRED to exist as columns in the sheet:
 REQUIRED_COLUMNS = [
@@ -70,11 +74,15 @@ def safe_float(x):
 def build_styles() -> str:
     out = []
     for cat, color in CATEGORY_COLORS.items():
+        icon_url = CATEGORY_ICONS.get(cat, DEFAULT_ICON_URL)
         out.append(f"""
     <Style id="{html.escape(cat)}">
       <IconStyle>
         <color>{color}</color>
         <scale>1.1</scale>
+        <Icon>
+          <href>{html.escape(icon_url)}</href>
+        </Icon>
       </IconStyle>
       <LabelStyle>
         <scale>0.9</scale>
@@ -100,7 +108,7 @@ def main() -> None:
     skipped = 0
 
     for i, row in enumerate(reader, start=2):
-        # Required fields
+        # Required fields (must be non-blank)
         name = (row.get("Name") or "").strip()
         category = (row.get("Category") or "").strip()
 
@@ -114,7 +122,7 @@ def main() -> None:
             skipped += 1
             continue
 
-        # Helper for optional fields
+        # Optional fields (may be blank; column may or may not exist)
         def opt(col: str) -> str:
             return (row.get(col) or "").strip() if col in cols else ""
 
@@ -127,9 +135,10 @@ def main() -> None:
         fcc_id = opt("FCC ID")
         fcc_link = opt("FCC Link")
 
+        # Style by category (unknown categories still render, just without styling)
         style_url = f"#{category}" if category in CATEGORY_COLORS else ""
 
-        # Build placemark description
+        # Build description with only populated fields
         desc_parts = [
             f"<b>Name:</b> {html.escape(name)}",
             f"<b>Status:</b> {html.escape(category)}",
