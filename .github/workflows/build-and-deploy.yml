@@ -1,0 +1,55 @@
+name: Build KML and Deploy
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate KML from Google Sheet
+        env:
+          SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
+          DATASET_URL: ${{ vars.DATASET_URL }}
+          REFRESH_SECONDS: "300"
+        run: |
+          python3 generate_kml.py
+          mkdir -p public
+          cp sites.kml public/sites.kml
+          cp networklink.kml public/networklink.kml
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
