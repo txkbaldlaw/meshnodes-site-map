@@ -79,13 +79,13 @@ def build_styles() -> str:
     <Style id="{html.escape(cat)}">
       <IconStyle>
         <color>{color}</color>
-        <scale>1.1</scale>
+        <scale>1.5</scale>
         <Icon>
           <href>{html.escape(icon_url)}</href>
         </Icon>
       </IconStyle>
       <LabelStyle>
-        <scale>0.9</scale>
+        <scale>1.0</scale>
       </LabelStyle>
     </Style>""")
     return "\n".join(out)
