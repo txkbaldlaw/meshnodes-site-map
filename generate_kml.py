@@ -203,23 +203,29 @@ def main() -> None:
         </Point>
       </Placemark>"""
 
-        folders.setdefault(category, []).append(placemark_xml)
+        folders.setdefault(category, []).append((name.lower(), placemark_xml))
 
     # Build folder XML in stable order.
     # - All categories visible by default (visibility=1)
     # - Folders collapsed by default (open=0)
     ordered_categories = sorted(folders.keys(), key=category_sort_key)
 
-    folders_xml_parts = []
     for cat in ordered_categories:
-        pms = folders.get(cat, [])
-        folders_xml_parts.append(f"""
+    entries = folders.get(cat, [])
+
+    # Sort placemarks A–Z by Name
+    entries.sort(key=lambda x: x[0])
+
+    placemarks_xml = "".join(pm_xml for _, pm_xml in entries)
+
+    folders_xml_parts.append(f"""
     <Folder>
       <name>{html.escape(cat)}</name>
       <visibility>1</visibility>
       <open>0</open>
-      {''.join(pms)}
+      {placemarks_xml}
     </Folder>""")
+
 
     folders_xml = "\n".join(folders_xml_parts)
 
