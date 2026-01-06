@@ -204,7 +204,7 @@ def main() -> None:
     networklink = f"""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <NetworkLink>
-    <name>{html.escape(DATASET_NAME)}</name>
+    <name>{html.escape(DATASET_NAME)} (Live)</name>
     <Link>
       <href>{html.escape(dataset_href)}</href>
       <refreshMode>onInterval</refreshMode>
