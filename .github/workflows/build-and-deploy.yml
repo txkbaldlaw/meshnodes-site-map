@@ -3,7 +3,7 @@ name: Build KML and Deploy
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"   # every 10 minutes
+    - cron: "*/10 * * * *"   # every 10 minutes
 
 permissions:
   contents: read
@@ -27,11 +27,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Generate KML from Google Sheet
+      - name: Generate KML from Google Sheets
         env:
-          SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
+          PROSPECTIVE_CSV_URL: ${{ secrets.PROSPECTIVE_CSV_URL }}
+          INSTALLED_CSV_URL: ${{ secrets.INSTALLED_CSV_URL }}
           DATASET_URL: ${{ vars.DATASET_URL }}
-          REFRESH_SECONDS: "300"
+          REFRESH_SECONDS: "600"
         run: |
           python3 generate_kml.py
           mkdir -p public
