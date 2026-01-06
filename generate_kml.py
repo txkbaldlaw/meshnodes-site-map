@@ -90,7 +90,7 @@ def main() -> None:
     skipped = 0
 
     for i, row in enumerate(reader, start=2):
-        # Required fields (must be non-blank)
+        # Required fields
         name = (row.get("Name") or "").strip()
         category = (row.get("Category") or "").strip()
 
@@ -104,9 +104,9 @@ def main() -> None:
             skipped += 1
             continue
 
-        # Optional fields (may be blank; column may or may not exist)
-        def opt(col_name: str) -> str:
-            return (row.get(col_name) or "").strip() if col_name in cols else ""
+        # Helper for optional fields
+        def opt(col: str) -> str:
+            return (row.get(col) or "").strip() if col in cols else ""
 
         address = opt("Street Address")
         notes = opt("Notes")
@@ -115,11 +115,11 @@ def main() -> None:
         assigned_to = opt("Assigned To")
         node_owner = opt("Node Owner")
         fcc_id = opt("FCC ID")
+        fcc_link = opt("FCC Link")
 
-        # Style by category (unknown categories still render, just without color styling)
         style_url = f"#{category}" if category in CATEGORY_COLORS else ""
 
-        # Build description with only populated fields
+        # Build placemark description
         desc_parts = [
             f"<b>Name:</b> {html.escape(name)}",
             f"<b>Status:</b> {html.escape(category)}",
@@ -137,6 +137,11 @@ def main() -> None:
             desc_parts.append(f"<b>Installed Node Name:</b> {html.escape(installed_node)}")
         if fcc_id:
             desc_parts.append(f"<b>FCC ID:</b> {html.escape(fcc_id)}")
+        if fcc_link:
+            safe_url = html.escape(fcc_link, quote=True)
+            desc_parts.append(
+                f'<b>FCC Link:</b> <a href="{safe_url}" target="_blank">{safe_url}</a>'
+            )
         if notes:
             desc_parts.append(f"<b>Notes:</b> {html.escape(notes)}")
 
