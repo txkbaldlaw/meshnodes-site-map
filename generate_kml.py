@@ -21,14 +21,24 @@ REFRESH_SECONDS = int(os.environ.get("REFRESH_SECONDS", "600"))
 
 # Category -> KML colors in AABBGGRR (alpha, blue, green, red)
 CATEGORY_COLORS = {
-    "Owner Approved": "ff90ee90",     # Light Green
-    "Group Approved": "ffe6add8",     # Lavender
-    "Node Installed": "ff006400",     # Dark Green
-    "Suggested": "ffadd8e6",          # Light Blue
-    "Owner Requested": "ff00a5ff",    # Orange
-    "Owner Rejected": "ff0000ff",     # Red
-    "Group Rejected": "ff000000",     # Black
+    "Owner Approved": "ff00ff00",     # Pure Green
+    "Group Approved": "fffeb900",     # Mid Blue
+    "Node Installed": "ff00ff00",     # Pure Green
+    "Suggested": "ffeeff00",          # Light Blue
+    "Owner Requested": "ffda00ff",    # Purple
+    "Owner Rejected": "ff000000",     # Red
+    "Group Rejected": "ff0000ff",     # Black
 }
+
+#  Category Shapes 
+CATEGORY_ICONS = {
+    "Node Installed": "http://maps.google.com/mapfiles/kml/paddle/grn-stars.png",
+    "Owner Approved": "http://maps.google.com/mapfiles/kml/paddle/grn-blank.png",
+    "Suggested": "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png",
+    "Owner Rejected": "http://maps.google.com/mapfiles/kml/paddle/X.png",
+    "Group Rejected": "http://maps.google.com/mapfiles/kml/paddle/X.png",
+}
+
 
 # Only these fields are REQUIRED to exist as columns in the sheet:
 REQUIRED_COLUMNS = [
