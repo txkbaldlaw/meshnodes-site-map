@@ -202,7 +202,7 @@ def main() -> None:
 
         placemark = f"""
       <Placemark>
-        <name>{html.escape(name)}</name>
+        <name>{html.escape("Mesh: " + name)}</name>
         {"<styleUrl>"+html.escape(p_style)+"</styleUrl>" if p_style else ""}
         <description><![CDATA[{desc}]]></description>
         <Point><coordinates>{lon},{lat}</coordinates></Point>
@@ -310,7 +310,7 @@ def main() -> None:
 
         placemark = f"""
       <Placemark>
-        <name>{html.escape(node_name)}</name>
+       <name>{html.escape("Mesh: " + node_name)}</name>
         {"<styleUrl>"+html.escape(i_style)+"</styleUrl>" if i_style else ""}
         <description><![CDATA[{desc}]]></description>
         <Point><coordinates>{lon},{lat}</coordinates></Point>
