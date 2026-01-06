@@ -125,10 +125,10 @@ def build_style_block(style_id_str: str, color: str, icon_url: str) -> str:
     <Style id="{html.escape(style_id_str)}">
       <IconStyle>
         <color>{color}</color>
-        <scale>1.1</scale>
+        <scale>1.5</scale>
         <Icon><href>{html.escape(icon_url)}</href></Icon>
       </IconStyle>
-      <LabelStyle><scale>0.9</scale></LabelStyle>
+      <LabelStyle><scale>1.2</scale></LabelStyle>
     </Style>"""
 
 def main() -> None:
