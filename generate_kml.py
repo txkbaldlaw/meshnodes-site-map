@@ -38,16 +38,6 @@ REQUIRED_COLUMNS = [
     "Category",
 ]
 
-# These are OPTIONAL columns. If present, they will be shown in placemark balloons.
-OPTIONAL_COLUMNS = [
-    "Street Address",
-    "Notes",
-    "Installed Node Name",
-    "Proposed By",
-    "Assigned To",
-    "Node Owner",
-]
-
 def die(msg: str) -> None:
     print(f"ERROR: {msg}", file=sys.stderr)
     sys.exit(1)
@@ -114,13 +104,17 @@ def main() -> None:
             skipped += 1
             continue
 
-        # Optional fields (may be blank or even missing as columns)
-        address = (row.get("Street Address") or "").strip() if "Street Address" in cols else ""
-        notes = (row.get("Notes") or "").strip() if "Notes" in cols else ""
-        installed_node = (row.get("Installed Node Name") or "").strip() if "Installed Node Name" in cols else ""
-        proposed_by = (row.get("Proposed By") or "").strip() if "Proposed By" in cols else ""
-        assigned_to = (row.get("Assigned To") or "").strip() if "Assigned To" in cols else ""
-        node_owner = (row.get("Node Owner") or "").strip() if "Node Owner" in cols else ""
+        # Optional fields (may be blank; column may or may not exist)
+        def opt(col_name: str) -> str:
+            return (row.get(col_name) or "").strip() if col_name in cols else ""
+
+        address = opt("Street Address")
+        notes = opt("Notes")
+        installed_node = opt("Installed Node Name")
+        proposed_by = opt("Proposed By")
+        assigned_to = opt("Assigned To")
+        node_owner = opt("Node Owner")
+        fcc_id = opt("FCC ID")
 
         # Style by category (unknown categories still render, just without color styling)
         style_url = f"#{category}" if category in CATEGORY_COLORS else ""
@@ -141,6 +135,8 @@ def main() -> None:
             desc_parts.append(f"<b>Node Owner:</b> {html.escape(node_owner)}")
         if installed_node:
             desc_parts.append(f"<b>Installed Node Name:</b> {html.escape(installed_node)}")
+        if fcc_id:
+            desc_parts.append(f"<b>FCC ID:</b> {html.escape(fcc_id)}")
         if notes:
             desc_parts.append(f"<b>Notes:</b> {html.escape(notes)}")
 
