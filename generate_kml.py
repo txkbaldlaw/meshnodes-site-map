@@ -83,6 +83,7 @@ INSTALLED_DEFAULT_ICON_URL = "http://maps.google.com/mapfiles/kml/paddle/wht-bla
 # If you ever want status-specific shapes, add them here. Otherwise everything uses default icon URL.
 INSTALLED_STATUS_ICONS = {
     # Example if you later want: "In Service": "http://maps.google.com/mapfiles/kml/paddle/grn-stars.png"
+    "Temp Install": "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png".
 }
 
 # -----------------------
