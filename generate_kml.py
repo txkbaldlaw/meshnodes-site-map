@@ -75,6 +75,7 @@ INSTALLED_STATUS_COLORS = {
     "Offline for Repair": "ff00a5ff", # Orange-ish
     "Needs Repair": "ff0000ff",       # Red
     "Decommissioned": "ff808080",     # Gray
+    "Temp Install": "ff00ffff",       # Yellow
 }
 
 INSTALLED_DEFAULT_ICON_URL = "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png"
