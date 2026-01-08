@@ -38,7 +38,7 @@ jobs:
           mkdir -p public
           cp sites.kml public/sites.kml
           cp networklink.kml public/networklink.kml
-          cp assets/images public/images
+          cp assets/img public/img
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
