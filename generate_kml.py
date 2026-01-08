@@ -84,6 +84,7 @@ INSTALLED_DEFAULT_ICON_URL = "http://maps.google.com/mapfiles/kml/paddle/wht-bla
 INSTALLED_STATUS_ICONS = {
     # Example if you later want: "In Service": "http://maps.google.com/mapfiles/kml/paddle/grn-stars.png"
     "Temp Install": "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png",
+    "In Service": "https://txkbaldlaw.github.io/meshnodes-site-map/img/mc-icon.png",
 }
 
 # -----------------------
