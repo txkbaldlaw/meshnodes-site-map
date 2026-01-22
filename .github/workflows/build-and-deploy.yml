@@ -3,7 +3,7 @@ name: Build KML and Deploy
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"   # every 10 minutes
+    - cron: "15 * * * *"   # every hour at 15 minutes
 
 permissions:
   contents: read
